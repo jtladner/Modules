@@ -42,3 +42,14 @@ def seqLenDict(fD):
     seqs = list(fD.values())
     lens = [len(s) for s in seqs]
     return sorted(list(set(lens)))
+
+def combine_fastafiles(fileList, outname):
+    allNames=[]
+    allSeqs=[]
+    
+    for f in fileList:
+        n,s = read_fasta_lists(f)
+        allNames+=n
+        allSeqs+=s
+    
+    write_fasta(allNames, allSeqs, outname)
