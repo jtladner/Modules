@@ -104,3 +104,22 @@ def fileDictFull(file, delim="\t"):
                     l[headMap[i]].append(x)
     return l
 
+def fileDictFullRowNames(file, delim="\t"):
+    l=defaultdict(dict)
+    with open(file, "r") as fin:
+        lc=0
+        for line in fin:
+            lc+=1
+            thisCols = line.rstrip("\n").split(delim)
+            if lc==1:
+                headMap = {i:x for i,x in enumerate(thisCols)}
+            else:
+                for i,x in enumerate(thisCols):
+                    if i>0:
+                        l[headMap[i]][thisCols[0]] = x
+    return l
+
+
+def writeList(lst, outname, delim="\n"):
+    with open(outname, "w") as fout:
+        fout.write(delim.join(lst))

@@ -25,7 +25,10 @@ def kmerEmptyDict(seq,k):
 def compSeqs(s1, s2, k):
     s1k = kmerSet(s1,k)
     s2k = kmerSet(s2,k)
-    if len(s1k)<=len(s2k):
+    if len(s1k) == 0 or len(s2k)==0:
+        print("At least one of the seqs have 0 %dmers. Returning 0 overlap." % (k))
+        return 0
+    elif len(s1k)<=len(s2k):
         return(len(s1k.intersection(s2k))/len(s1k))
     else:
         return(len(s1k.intersection(s2k))/len(s2k))
