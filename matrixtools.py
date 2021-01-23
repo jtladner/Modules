@@ -10,7 +10,7 @@ def writeCounts(cd, outname):
         for each in probeNames:
             fout.write("%s\t%s\n" % (each, "\t".join([str(cd[x][each]) for x in sampNames])))
 
-def parseCounts(countFile, delim="\t"):
+def parseCounts(countFile, delim="\t", valType="float"):
     counts={}
     with open(countFile, "r") as fin:
         lc=0
@@ -23,7 +23,12 @@ def parseCounts(countFile, delim="\t"):
                     counts[n]={}
             else:
                 for i, count in enumerate(cols[1:]):
-                    counts[names[i]][cols[0]] = float(count)
+                    if valType=="float":
+                        counts[names[i]][cols[0]] = float(count)
+                    elif valType=="str":
+                        counts[names[i]][cols[0]] = str(count)
+                    elif valType=="int":
+                        counts[names[i]][cols[0]] = int(count)
     return counts
 
 def readMatrix(countFile, delim="\t"):
