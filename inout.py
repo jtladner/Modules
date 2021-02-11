@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-def fileDictHeader(file, key, val, delim="\t", splitVal=False, splitKey=False):
+def fileDictHeader(file, key, val, delim="\t", splitVal=False, splitKey=False, valType="str"):
     fileD={}
     with open(file, "r") as fin:
         lc=0
@@ -15,15 +15,37 @@ def fileDictHeader(file, key, val, delim="\t", splitVal=False, splitKey=False):
                 if splitKey:
                     for each in cols[headD[key]].split(splitKey):
                         if splitVal:
-                            fileD[each] = cols[headD[val].split(splitDelim)]
+                            if valType=="float":
+                                fileD[each] = float(cols[headD[val].split(splitDelim)])
+                            elif valType=="str":
+                                fileD[each] = str(cols[headD[val].split(splitDelim)])
+                            elif valType=="int":
+                                fileD[each] = int(cols[headD[val].split(splitDelim)])
+
                         else:
-                            fileD[each] = cols[headD[val]]
+                            if valType=="float":
+                                fileD[each] = float(cols[headD[val]])
+                            elif valType=="str":
+                                fileD[each] = str(cols[headD[val]])
+                            elif valType=="int":
+                                fileD[each] = int(cols[headD[val]])
                 
                 else: 
                     if splitVal:
-                        fileD[cols[headD[key]]] = cols[headD[val].split(splitDelim)]
+                        if valType=="float":
+                            fileD[cols[headD[key]]] = float(cols[headD[val].split(splitDelim)])
+                        elif valType=="str":
+                            fileD[cols[headD[key]]] = str(cols[headD[val].split(splitDelim)])
+                        elif valType=="int":
+                            fileD[cols[headD[key]]] = int(cols[headD[val].split(splitDelim)])
                     else:
-                        fileD[cols[headD[key]]] = cols[headD[val]]
+                        if valType=="float":
+                            fileD[cols[headD[key]]] = float(cols[headD[val]])
+                        elif valType=="str":
+                            fileD[cols[headD[key]]] = str(cols[headD[val]])
+                        elif valType=="int":
+                            fileD[cols[headD[key]]] = int(cols[headD[val]])
+
     return fileD
 
 def fileDictHeaderLists(file, key, val, delim="\t"):
@@ -53,7 +75,7 @@ def fileList(file, col=0, delim="\t", header=True):
                 l.append(thisCols[col])
     return l
 
-def fileListHeader(file, name, delim="\t"):
+def fileListHeader(file, name, delim="\t", valType="str"):
     l=[]
     with open(file, "r") as fin:
         lc=0
@@ -63,7 +85,14 @@ def fileListHeader(file, name, delim="\t"):
             if lc == 1:
                 col = thisCols.index(name)
             else:
-                l.append(thisCols[col])
+                if valType=="float":
+                    l.append(float(thisCols[col]))
+                elif valType=="str":
+                    l.append(str(thisCols[col]))
+                elif valType=="int":
+                    l.append(int(thisCols[col]))
+
+                
     return l
 
 
