@@ -60,14 +60,14 @@ def readMatrixFlip(countFile, delim="\t"):
     return cmat
 
 
-def corrMat(matFile, outfile, cMap="viridis"):
+def corrMat(matFile, outfile, cMap="viridis", setdpi=300, meth='pearson'):
     pyMat = readMatrix(matFile)
     df = pd.DataFrame(pyMat,columns=sorted(list(pyMat.keys())))
-    corrMatrix = df.corr()
+    corrMatrix = df.corr(method=meth)
     
     height = 0.3*len(pyMat)
     width = 0.4*len(pyMat)
     fig, ax = plt.subplots(figsize=(width,height))
     sn.heatmap(corrMatrix, annot=False, ax=ax, cmap=cMap)
-    fig.savefig(outfile,dpi=300,bbox_inches='tight')
+    fig.savefig(outfile,dpi=setdpi,bbox_inches='tight')
     
