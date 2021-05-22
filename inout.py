@@ -119,7 +119,7 @@ def fileDict(file, key=0, val=1, delim="\t", header=True):
                 except: print(thisCols)
     return l
 
-def fileDictFull(file, delim="\t"):
+def fileDictFull(file, delim="\t", valType="str", rowNames=False):
     l=defaultdict(list)
     with open(file, "r") as fin:
         lc=0
@@ -130,7 +130,15 @@ def fileDictFull(file, delim="\t"):
                 headMap = {i:x for i,x in enumerate(thisCols)}
             else:
                 for i,x in enumerate(thisCols):
-                    l[headMap[i]].append(x)
+                    if i>0 or not rowNames:
+                        if valType=="str":
+                            l[headMap[i]].append(x)
+                        elif valType=="int":
+                            l[headMap[i]].append(int(x))
+                        elif valType=="float":
+                            l[headMap[i]].append(float(x))
+                        else:
+                            print("%s is an invalid valType" % (valType))
     return l
 
 def fileDictFullRowNames(file, delim="\t"):
