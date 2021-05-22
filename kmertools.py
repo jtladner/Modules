@@ -1,10 +1,23 @@
 from collections import defaultdict
+import fastatools as ft
 
 #Returns set withcontaining all unique kmers.
-def kmerSet(seq,k):
+def kmerSetFasta(fasta,k,filter=[]):
+    names, seqs = ft.read_fasta_lists(fasta)
+    total = set()
+    for s in seqs:
+        total.update(kmerSet(s,k, filter))
+    return total
+
+
+#Returns set withcontaining all unique kmers.
+def kmerSet(seq,k, filter=[]):
     out=[]
     for i in range(len(seq)-k+1):
-        out.append(seq[i:i+k])
+        this = seq[i:i+k]
+        flag = sum([1 for p in this if p in filter])
+        if not flag:
+            out.append(this)
     return set(out)
 
 #Returns list withcontaining all unique kmers.
