@@ -63,6 +63,20 @@ def fileDictHeaderLists(file, key, val, delim="\t"):
                 fileD[cols[headD[key]]].append(cols[headD[val]])
     return fileD
 
+def fileDictLists(file, delim="\t"):
+    fileD=defaultdict(list)
+    with open(file, "r") as fin:
+        for line in fin:
+            rows = line.rstrip("\n").split(delim)
+            i=0
+            if rows != ['']:
+                for itm in rows:
+                    if i==0:
+                        fileD[rows[0]]
+                    else:
+                        fileD[rows[0]].append(itm)
+                    i+=1
+    return fileD
 
 def fileList(file, col=0, delim="\t", header=True):
     l=[]
