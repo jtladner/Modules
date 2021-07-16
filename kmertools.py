@@ -35,9 +35,9 @@ def kmerEmptyDict(seq,k):
     return {x:"" for x in set(out)}
 
 #Returns proportion of identical kmers
-def compSeqs(s1, s2, k):
-    s1k = kmerSet(s1,k)
-    s2k = kmerSet(s2,k)
+def compSeqs(s1, s2, k, filter=[]):
+    s1k = kmerSet(s1,k, filter)
+    s2k = kmerSet(s2,k, filter)
     if len(s1k) == 0 or len(s2k)==0:
         print("At least one of the seqs have 0 %dmers. Returning 0 overlap." % (k))
         return 0
