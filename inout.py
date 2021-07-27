@@ -48,7 +48,7 @@ def fileDictHeader(file, key, val, delim="\t", splitVal=False, splitKey=False, v
 
     return fileD
 
-def fileDictHeaderLists(file, key, val, delim="\t"):
+def fileDictHeaderLists(file, key, val, delim="\t", valType="str"):
     fileD=defaultdict(list)
     with open(file, "r") as fin:
         lc=0
@@ -60,8 +60,42 @@ def fileDictHeaderLists(file, key, val, delim="\t"):
                 for i,x in enumerate(cols):
                     headD[x] = i
             elif cols != ['']:
-                fileD[cols[headD[key]]].append(cols[headD[val]])
+                if valType=="float":
+                    fileD[cols[headD[key]]].append(float(cols[headD[val]]))
+                elif valType=="str":
+                    fileD[cols[headD[key]]].append(str(cols[headD[val]]))
+                elif valType=="int":
+                    fileD[cols[headD[key]]].append(int(cols[headD[val]]))
+                
     return fileD
+
+def fileHeaderDictDictLists(file, k1, k2, val, delim="\t", valType="str"):
+    fileD={}
+    with open(file, "r") as fin:
+        lc=0
+        for line in fin:
+            lc+=1
+            cols = line.rstrip("\n").split(delim)
+            if lc==1:
+                headD={}
+                for i,x in enumerate(cols):
+                    headD[x] = i
+            elif cols != ['']:
+                if cols[headD[k1]] not in fileD:
+                    fileD[cols[headD[k1]]] = {}
+                    fileD[cols[headD[k1]]][cols[headD[k2]]] = []
+                elif cols[headD[k2]] not in fileD[cols[headD[k1]]]:
+                    fileD[cols[headD[k1]]][cols[headD[k2]]] = []
+                
+                if valType=="float":
+                    fileD[cols[headD[k1]]][cols[headD[k2]]].append(float(cols[headD[val]]))
+                elif valType=="str":
+                    fileD[cols[headD[k1]]][cols[headD[k2]]].append(str(cols[headD[val]]))
+                elif valType=="int":
+                    fileD[cols[headD[k1]]][cols[headD[k2]]].append(int(cols[headD[val]]))
+                
+    return fileD
+
 
 def fileDictLists(file, key=0, val=1, delim="\t", header=True):
     fileD=defaultdict(list)
