@@ -1,4 +1,5 @@
 from collections import defaultdict
+import os
 
 def fileDictHeader(file, key, val, delim="\t", splitVal=False, splitKey=False, valType="str"):
     fileD={}
@@ -205,3 +206,10 @@ def fileDictFullRowNames(file, delim="\t"):
 def writeList(lst, outname, delim="\n"):
     with open(outname, "w") as fout:
         fout.write(delim.join(lst))
+
+
+def makeDir(dirName):
+    if os.path.isdir(dirName):
+        print("Warning: the directory %s already exists!" % (dirName))
+    else:
+        os.mkdir(dirName)
