@@ -107,7 +107,10 @@ def fileDictLists(file, key=0, val=1, delim="\t", header=True):
             rows = line.rstrip("\n").split(delim)
             if lc>1 or header==False:
                 if rows != ['']:
-                    fileD[rows[key]].append(rows[val])
+                    try:
+                        fileD[rows[key]].append(rows[val])
+                    except:
+                        print(rows)
     return fileD
 
 def fileList(file, col=0, delim="\t", header=True):
@@ -187,7 +190,7 @@ def fileDictFull(file, delim="\t", valType="str", rowNames=False):
                             print("%s is an invalid valType" % (valType))
     return l
 
-def fileDictFullRowNames(file, delim="\t"):
+def fileDictFullRowNames(file, delim="\t", valType="str"):
     l=defaultdict(dict)
     with open(file, "r") as fin:
         lc=0
@@ -199,7 +202,13 @@ def fileDictFullRowNames(file, delim="\t"):
             else:
                 for i,x in enumerate(thisCols):
                     if i>0:
-                        l[headMap[i]][thisCols[0]] = x
+                        if valType=="str":
+                            l[headMap[i]][thisCols[0]] = x
+                        elif valType=="int":
+                            l[headMap[i]][thisCols[0]] = int(x)
+                        elif valType=="float":
+                            l[headMap[i]][thisCols[0]] = float(x)
+
     return l
 
 
