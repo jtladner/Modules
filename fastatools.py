@@ -27,6 +27,14 @@ def read_fasta_dict_upper(file):
     return fasta_dict
 
 #writes a new fasta file
+def write_fasta_dict(fD, new_filename):
+    fout=open(new_filename, 'w')
+    for k,v in fD.items():
+        fout.write(">%s\n%s\n" % (k, v))
+    fout.close()
+
+
+#writes a new fasta file
 def write_fasta(names, seqs, new_filename):
     fout=open(new_filename, 'w')
     for i in range(len(names)):
