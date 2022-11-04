@@ -36,6 +36,8 @@ def write_fasta_dict(fD, new_filename):
 
 #writes a new fasta file
 def write_fasta(names, seqs, new_filename):
+    if len(names) != len(seqs):
+        print(f"Warning: the number of names ({len(names)}) and the number of sequences ({len(seqs)}) provided to write_fasta are NOT the same!")
     fout=open(new_filename, 'w')
     for i in range(len(names)):
         fout.write(">%s\n%s\n" % (names[i], seqs[i]))
@@ -57,7 +59,9 @@ def combine_fastafiles(fileList, outname):
     
     for f in fileList:
         n,s = read_fasta_lists(f)
-        allNames+=n
-        allSeqs+=s
+        # Makes sure that some sequences were found
+        if n:
+            allNames+=n
+            allSeqs+=s
     
     write_fasta(allNames, allSeqs, outname)
