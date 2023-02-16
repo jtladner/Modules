@@ -20,6 +20,15 @@ def kmerDictCountFasta(fasta,k,filter=[]):
             cD[kmer]+=1
     return cD
 
+#Returns dictionary containing counts for unique kmers.
+def kmerDictCount(seqs,k,filter=[]):
+    cD = defaultdict(int)
+    for s in seqs:
+        ks = kmerSet(s,k, filter)
+        for kmer in ks:
+            cD[kmer]+=1
+    return cD
+
 
 #Returns set withcontaining all unique kmers.
 def kmerSet(seq,k, filter=[]):
