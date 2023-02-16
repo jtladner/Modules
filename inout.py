@@ -97,6 +97,30 @@ def fileHeaderDictDictLists(file, k1, k2, val, delim="\t", valType="str"):
                 
     return fileD
 
+def fileHeaderDictDict(file, k1, k2, val, delim="\t", valType="str"):
+    fileD={}
+    with open(file, "r") as fin:
+        lc=0
+        for line in fin:
+            lc+=1
+            cols = line.rstrip("\n").split(delim)
+            if lc==1:
+                headD={}
+                for i,x in enumerate(cols):
+                    headD[x] = i
+            elif cols != ['']:
+                if cols[headD[k1]] not in fileD:
+                    fileD[cols[headD[k1]]] = {}
+                
+                if valType=="float":
+                    fileD[cols[headD[k1]]][cols[headD[k2]]] = float(cols[headD[val]])
+                elif valType=="str":
+                    fileD[cols[headD[k1]]][cols[headD[k2]]] = str(cols[headD[val]])
+                elif valType=="int":
+                    fileD[cols[headD[k1]]][cols[headD[k2]]] = int(cols[headD[val]])
+                
+    return fileD
+
 
 def fileDictLists(file, key=0, val=1, delim="\t", header=True):
     fileD=defaultdict(list)
