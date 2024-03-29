@@ -1,13 +1,41 @@
 from collections import defaultdict
 import fastatools as ft
+try:
+    from Bio.Seq import Seq
+except:
+    print("You must have Biopython installed to use the Revcomp functions")
 
-#Returns set withcontaining all unique kmers.
+# Returns a dictionary with one key for each seq in a fasta (sequence name)
+# Values will be sets of all kmers contained
+def kmerDictSetFasta(fasta,k,filter=[]):
+    fD = ft.read_fasta_dict_upper(fasta)
+    outD = {}
+    for n,s in fD.items():
+        outD[n] = kmerSet(s,k, filter)
+    return outD
+
+#Returns set containing all unique kmers.
 def kmerSetFasta(fasta,k,filter=[]):
     names, seqs = ft.read_fasta_lists(fasta)
     total = set()
     for s in seqs:
         total.update(kmerSet(s,k, filter))
     return total
+
+#Returns set containing all unique kmers, including those for the reverse complement
+def kmerSetFastaRevcomp(fasta,k,filter=[], upper=True):
+    names, seqs = ft.read_fasta_lists(fasta)
+    if upper:
+        seqs = [s.upper() for s in seqs]
+    total = set()
+    for s in seqs:
+        total.update(kmerSet(s,k, filter))
+        dna = Seq(s)
+        rcs = str(dna.reverse_complement())
+        total.update(kmerSet(rcs,k, filter))
+
+    return total
+
 
 
 #Returns dictionary containing counts for unique kmers.
@@ -30,7 +58,7 @@ def kmerDictCount(seqs,k,filter=[]):
     return cD
 
 
-#Returns set withcontaining all unique kmers.
+#Returns set containing all unique kmers.
 def kmerSet(seq,k, filter=[]):
     out=[]
     for i in range(len(seq)-k+1):
@@ -40,7 +68,7 @@ def kmerSet(seq,k, filter=[]):
             out.append(this)
     return set(out)
 
-#Returns list withcontaining all unique kmers.
+#Returns list containing all unique kmers.
 def kmerList(seq,k):
     out=[]
     for i in range(len(seq)-k+1):
@@ -48,10 +76,16 @@ def kmerList(seq,k):
     return list(set(out))
 
 #Returns dict with keys for each unique kmer. All values will be empty strings.
-def kmerEmptyDict(seq,k):
+def kmerEmptyDict(seq,k, circular=False):
     out=[]
     for i in range(len(seq)-k+1):
         out.append(seq[i:i+k])
+    
+    if circular:
+        bridge = seq[-k:] + seq[:k]
+        for i in range(len(bridge)-k+1):
+            out.append(bridge[i:i+k])
+    
     return {x:"" for x in set(out)}
 
 #Returns proportion of identical kmers
