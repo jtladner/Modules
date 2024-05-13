@@ -1,18 +1,52 @@
 from collections import defaultdict
 import fastatools as ft
+import itertools as it
 try:
     from Bio.Seq import Seq
 except:
     print("You must have Biopython installed to use the Revcomp functions")
 
+# Pattern should be a string of 0s and 1s with 0s indicating positions to discard and 1s indicating positions to include
+def patternedKmers(seq, pattern, outType="set",filter=[]):
+    out=[]
+    k=len(pattern)
+    for i in range(len(seq)-k+1):
+        this = seq[i:i+k]
+        flag = sum([1 for p in this if p in filter])
+        if not flag:
+            this = "".join([a for i,a in enumerate(this) if int(pattern[i])])
+            out.append(this)
+    
+    if outType == "set":
+        return set(out)
+    elif outType == "dict":
+        outD = defaultdict(int)
+        for k in out:
+            outD[k]+=1
+        return outD
+    else:
+        print(f"{outType} is not a supported output type. Options are 'set' and 'dict'.")
+
+# Function to generate relevant patterns for use with patternedKmers function
+#def generatePatterns(k, span):
+    
+
 # Returns a dictionary with one key for each seq in a fasta (sequence name)
 # Values will be sets of all kmers contained
 def kmerDictSetFasta(fasta,k,filter=[]):
     fD = ft.read_fasta_dict_upper(fasta)
+    outD = kmerDictSet(fD,k,filter)
+    return outD
+
+# Returns a dictionary with one key for each seq in a fasta dict (sequence name)
+# Values will be sets of all kmers contained
+# The same as kmerDictSetFasta, but starting with a fasta file that has already been loaded into a dictionary
+def kmerDictSet(fD,k,filter=[]):
     outD = {}
     for n,s in fD.items():
         outD[n] = kmerSet(s,k, filter)
     return outD
+
 
 #Returns set containing all unique kmers.
 def kmerSetFasta(fasta,k,filter=[]):
