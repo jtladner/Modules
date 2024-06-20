@@ -6,6 +6,12 @@ try:
 except:
     print("You must have Biopython installed to use the Revcomp functions")
 
+try:
+    from sympy.utilities.iterables import multiset_permutations
+except:
+    print("You must have Sympy installed to use the generatePatterns function")
+
+
 # Pattern should be a string of 0s and 1s with 0s indicating positions to discard and 1s indicating positions to include
 def patternedKmers(seq, pattern, outType="set",filter=[]):
     out=[]
@@ -28,8 +34,12 @@ def patternedKmers(seq, pattern, outType="set",filter=[]):
         print(f"{outType} is not a supported output type. Options are 'set' and 'dict'.")
 
 # Function to generate relevant patterns for use with patternedKmers function
-#def generatePatterns(k, span):
-    
+# k is the number of positions in which you want to check for a match
+# span is the total length over which the matches can be spread
+def generatePatterns(k, span):
+    patt = [1]*k + [0]*(span-k)
+    poss = list(multiset_permutations(patt))
+    return poss
 
 # Returns a dictionary with one key for each seq in a fasta (sequence name)
 # Values will be sets of all kmers contained
