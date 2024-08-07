@@ -180,7 +180,7 @@ def fileEmptyDict(file, col=0, delim="\t", header=True):
 				l[thisCols[col]]=""
 	return l
 	
-def fileDict(file, key=0, val=1, delim="\t", header=True):
+def fileDict(file, key=0, val=1, delim="\t", valType="str", header=True):
 	l={}
 	with open(file, "r") as fin:
 		lc=0
@@ -188,7 +188,16 @@ def fileDict(file, key=0, val=1, delim="\t", header=True):
 			lc+=1
 			if lc>1 or header==False:
 				thisCols = line.rstrip("\n").split(delim)
-				try: l[thisCols[key]]=thisCols[val]
+				try: 
+					if valType=="str":
+						l[thisCols[key]]=thisCols[val]
+					elif valType=="int":
+						l[thisCols[key]]=int(thisCols[val])
+					elif valType=="float":
+						l[thisCols[key]]=float(thisCols[val])
+					else:
+						print("%s is an invalid valType" % (valType))
+						
 				except: print(thisCols)
 	return l
 
