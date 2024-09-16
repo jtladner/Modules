@@ -144,6 +144,22 @@ def compSeqs(s1, s2, k, filter=[]):
     else:
         return(len(s1k.intersection(s2k))/len(s2k))
 
+# Read in sequence and generate a dictionary with each kmer as a key and a list of start positions for the kmer as a value
+# Start positions will be 0-indexed
+def kmer2locDict(seq, k):
+    out = defaultdict(list)
+    for i in range(len(seq)-k+1):
+        out[seq[i:i+k]].append(i)
+    return out
+
+#Returns dictionary containing keys for each sequence in a fasta file and values are dicts generated with kmer2locDict
+def kmer2locDictFasta(fasta,k):
+    names, seqs = ft.read_fasta_lists(fasta)
+    cD = {}
+    for s in seqs:
+        cD[s] = kmer2locDict(s, k)
+    return cD
+
 #####----Below here, haven't checked over, just copied from another script
 
     
@@ -182,7 +198,7 @@ def cluster(seqs, k, thresh, names):
                 clusts.append([each])
                 clustNames.append([names[i]])
     return clusts, clustNames
-    
+
 #Look at epitope merging script for algorithm to combine these clusters
 def combPairs(pairs):
     d={}
