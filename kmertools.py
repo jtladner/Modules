@@ -2,250 +2,287 @@ from collections import defaultdict
 import fastatools as ft
 import itertools as it
 try:
-    from Bio.Seq import Seq
+	from Bio.Seq import Seq
 except:
-    print("You must have Biopython installed to use the Revcomp functions")
+	print("You must have Biopython installed to use the Revcomp functions")
 
 try:
-    from sympy.utilities.iterables import multiset_permutations
+	from sympy.utilities.iterables import multiset_permutations
 except:
-    print("You must have Sympy installed to use the generatePatterns function")
+	print("You must have Sympy installed to use the generatePatterns function")
 
 
 # Pattern should be a string of 0s and 1s with 0s indicating positions to discard and 1s indicating positions to include
 def patternedKmers(seq, pattern, outType="set",filter=[]):
-    out=[]
-    k=len(pattern)
-    for i in range(len(seq)-k+1):
-        this = seq[i:i+k]
-        flag = sum([1 for p in this if p in filter])
-        if not flag:
-            this = "".join([a for i,a in enumerate(this) if int(pattern[i])])
-            out.append(this)
-    
-    if outType == "set":
-        return set(out)
-    elif outType == "dict":
-        outD = defaultdict(int)
-        for k in out:
-            outD[k]+=1
-        return outD
-    else:
-        print(f"{outType} is not a supported output type. Options are 'set' and 'dict'.")
+	out=[]
+	k=len(pattern)
+	for i in range(len(seq)-k+1):
+		this = seq[i:i+k]
+		flag = sum([1 for p in this if p in filter])
+		if not flag:
+			this = "".join([a for i,a in enumerate(this) if int(pattern[i])])
+			out.append(this)
+	
+	if outType == "set":
+		return set(out)
+	elif outType == "dict":
+		outD = defaultdict(int)
+		for k in out:
+			outD[k]+=1
+		return outD
+	else:
+		print(f"{outType} is not a supported output type. Options are 'set' and 'dict'.")
+
+# Function that generates a dictionary
+# Keys will be kmers and values will be lists of the positions of the kmer in the sequence
+# If the same kmer is in multiple places in the sequence, all positions will be combined
+def kmerDictPos(seq,k):
+	out=defaultdict(list)
+	for i in range(len(seq)-k+1):
+		out[seq[i:i+k]]+=list(range(i,i+k))
+	return out
+
 
 # Function to generate relevant patterns for use with patternedKmers function
 # k is the number of positions in which you want to check for a match
 # span is the total length over which the matches can be spread
 def generatePatterns(k, span):
-    patt = [1]*k + [0]*(span-k)
-    poss = list(multiset_permutations(patt))
-    return poss
+	patt = [1]*k + [0]*(span-k)
+	poss = list(multiset_permutations(patt))
+	return poss
 
 # Returns a dictionary with one key for each seq in a fasta (sequence name)
 # Values will be sets of all kmers contained
 def kmerDictSetFasta(fasta,k,filter=[]):
-    fD = ft.read_fasta_dict_upper(fasta)
-    outD = kmerDictSet(fD,k,filter)
-    return outD
+	fD = ft.read_fasta_dict_upper(fasta)
+	outD = kmerDictSet(fD,k,filter)
+	return outD
 
 # Returns a dictionary with one key for each seq in a fasta dict (sequence name)
 # Values will be sets of all kmers contained
 # The same as kmerDictSetFasta, but starting with a fasta file that has already been loaded into a dictionary
 def kmerDictSet(fD,k,filter=[]):
-    outD = {}
-    for n,s in fD.items():
-        outD[n] = kmerSet(s,k, filter)
-    return outD
+	outD = {}
+	for n,s in fD.items():
+		outD[n] = kmerSet(s,k, filter)
+	return outD
 
 
 #Returns set containing all unique kmers.
 def kmerSetFasta(fasta,k,filter=[]):
-    names, seqs = ft.read_fasta_lists(fasta)
-    total = set()
-    for s in seqs:
-        total.update(kmerSet(s,k, filter))
-    return total
+	names, seqs = ft.read_fasta_lists(fasta)
+	total = set()
+	for s in seqs:
+		total.update(kmerSet(s,k, filter))
+	return total
 
 #Returns set containing all unique kmers, including those for the reverse complement
 def kmerSetFastaRevcomp(fasta,k,filter=[], upper=True):
-    names, seqs = ft.read_fasta_lists(fasta)
-    if upper:
-        seqs = [s.upper() for s in seqs]
-    total = set()
-    for s in seqs:
-        total.update(kmerSet(s,k, filter))
-        dna = Seq(s)
-        rcs = str(dna.reverse_complement())
-        total.update(kmerSet(rcs,k, filter))
+	names, seqs = ft.read_fasta_lists(fasta)
+	if upper:
+		seqs = [s.upper() for s in seqs]
+	total = set()
+	for s in seqs:
+		total.update(kmerSet(s,k, filter))
+		dna = Seq(s)
+		rcs = str(dna.reverse_complement())
+		total.update(kmerSet(rcs,k, filter))
 
-    return total
+	return total
 
+def kmerDictCountFasta_max1perSeq(fasta,k,filter=[]):
+	names, seqs = ft.read_fasta_lists(fasta)
+	cD = defaultdict(int)
+	for s in seqs:
+		ks = kmerSet(s,k, filter)
+		for kmer in ks:
+			cD[kmer]+=1
+	return cD
+
+#Returns dictionary containing counts for unique kmers.
+def kmerDictCountFasta(fasta,k):
+	names, seqs = ft.read_fasta_lists(fasta)
+	cD = defaultdict(int)
+	for s in seqs:
+		ks = kmerDictCount(s,k)
+		for kmer, cnt in ks.items():
+			cD[kmer]+=cnt
+	return cD
 
 
 #Returns dictionary containing counts for unique kmers.
-def kmerDictCountFasta(fasta,k,filter=[]):
-    names, seqs = ft.read_fasta_lists(fasta)
-    cD = defaultdict(int)
-    for s in seqs:
-        ks = kmerSet(s,k, filter)
-        for kmer in ks:
-            cD[kmer]+=1
-    return cD
+def kmerDictCount(s,k):
+	cD = defaultdict(int)
+	ks = kmerList(s,k)
+	for kmer in ks:
+		cD[kmer]+=1
+	return cD
 
 #Returns dictionary containing counts for unique kmers.
-def kmerDictCount(seqs,k,filter=[]):
-    cD = defaultdict(int)
-    for s in seqs:
-        ks = kmerSet(s,k, filter)
-        for kmer in ks:
-            cD[kmer]+=1
-    return cD
+def kmerDictCount_seqList(seqs,k,filter=[]):
+	cD = defaultdict(int)
+	for s in seqs:
+		ks = kmerSet(s,k, filter)
+		for kmer in ks:
+			cD[kmer]+=1
+	return cD
 
 
 #Returns set containing all unique kmers.
 def kmerSet(seq,k, filter=[]):
-    out=[]
-    for i in range(len(seq)-k+1):
-        this = seq[i:i+k]
-        flag = sum([1 for p in this if p in filter])
-        if not flag:
-            out.append(this)
-    return set(out)
+	out=[]
+	for i in range(len(seq)-k+1):
+		this = seq[i:i+k]
+		flag = sum([1 for p in this if p in filter])
+		if not flag:
+			out.append(this)
+	return set(out)
 
 #Returns list containing all unique kmers.
+def kmerList_unique(seq,k):
+	out=[]
+	for i in range(len(seq)-k+1):
+		out.append(seq[i:i+k])
+	return list(set(out))
+
+#Returns list containing all kmers.
 def kmerList(seq,k):
-    out=[]
-    for i in range(len(seq)-k+1):
-        out.append(seq[i:i+k])
-    return list(set(out))
+	out=[]
+	for i in range(len(seq)-k+1):
+		out.append(seq[i:i+k])
+	return out
+
 
 #Returns dict with keys for each unique kmer. All values will be empty strings.
 def kmerEmptyDict(seq,k, circular=False):
-    out=[]
-    for i in range(len(seq)-k+1):
-        out.append(seq[i:i+k])
-    
-    if circular:
-        bridge = seq[-k:] + seq[:k]
-        for i in range(len(bridge)-k+1):
-            out.append(bridge[i:i+k])
-    
-    return {x:"" for x in set(out)}
+	out=[]
+	for i in range(len(seq)-k+1):
+		out.append(seq[i:i+k])
+	
+	if circular:
+		bridge = seq[-k:] + seq[:k]
+		for i in range(len(bridge)-k+1):
+			out.append(bridge[i:i+k])
+	
+	return {x:"" for x in set(out)}
 
 #Returns proportion of identical kmers
 def compSeqs(s1, s2, k, filter=[]):
-    s1k = kmerSet(s1,k, filter)
-    s2k = kmerSet(s2,k, filter)
-    if len(s1k) == 0 or len(s2k)==0:
-        print("At least one of the seqs have 0 %dmers. Returning 0 overlap." % (k))
-        return 0
-    elif len(s1k)<=len(s2k):
-        return(len(s1k.intersection(s2k))/len(s1k))
-    else:
-        return(len(s1k.intersection(s2k))/len(s2k))
+	s1k = kmerSet(s1,k, filter)
+	s2k = kmerSet(s2,k, filter)
+	if len(s1k) == 0 or len(s2k)==0:
+		print("At least one of the seqs have 0 %dmers. Returning 0 overlap." % (k))
+		return 0
+	elif len(s1k)<=len(s2k):
+		return(len(s1k.intersection(s2k))/len(s1k))
+	else:
+		return(len(s1k.intersection(s2k))/len(s2k))
 
 # Read in sequence and generate a dictionary with each kmer as a key and a list of start positions for the kmer as a value
 # Start positions will be 0-indexed
 def kmer2locDict(seq, k):
-    out = defaultdict(list)
-    for i in range(len(seq)-k+1):
-        out[seq[i:i+k]].append(i)
-    return out
+	out = defaultdict(list)
+	for i in range(len(seq)-k+1):
+		out[seq[i:i+k]].append(i)
+	return out
 
 #Returns dictionary containing keys for each sequence in a fasta file and values are dicts generated with kmer2locDict
-def kmer2locDictFasta(fasta,k):
-    names, seqs = ft.read_fasta_lists(fasta)
-    cD = {}
-    for s in seqs:
-        cD[s] = kmer2locDict(s, k)
-    return cD
+def kmer2locDictFasta(fasta,k,nameAsKey=True):
+	fD = ft.read_fasta_dict(fasta)
+	cD = {}
+	for n,s in fD.items():
+		if nameAsKey:
+			cD[n] = kmer2locDict(s, k)
+		else:
+			cD[s] = kmer2locDict(s, k)
+	return cD
 
 #####----Below here, haven't checked over, just copied from another script
 
-    
+	
 def pairwiseComps(seqs, k):
-    comps=[]
-    for a,b in it.combinations(seqs, 2):
-        comps.append(compSeqs(a,b,k))
-    return comps
+	comps=[]
+	for a,b in it.combinations(seqs, 2):
+		comps.append(compSeqs(a,b,k))
+	return comps
 
 def btwnComps(g1, g2, k):
-    comps=[]
-    for a in g1:
-        for b in g2:
-            comps.append(compSeqs(a,b,k))
-    return comps
+	comps=[]
+	for a in g1:
+		for b in g2:
+			comps.append(compSeqs(a,b,k))
+	return comps
 
 def cluster(seqs, k, thresh, names):
-    longest=[]
-    clusts=[]
-    clustNames=[]
-    for i, each in enumerate(seqs):
-        match=0
-        if i == 0:
-            longest=[each]
-            clusts=[[each]]
-            clustNames.append([names[i]])
-        else:
-            for j, rep in enumerate(longest):
-                if compSeqs(each, rep,k)>=thresh:
-                    clusts[j].append(each)
-                    clustNames[j].append(names[i])
-                    match=1
-                    break
-            if not match:
-                longest.append(each)
-                clusts.append([each])
-                clustNames.append([names[i]])
-    return clusts, clustNames
+	longest=[]
+	clusts=[]
+	clustNames=[]
+	for i, each in enumerate(seqs):
+		match=0
+		if i == 0:
+			longest=[each]
+			clusts=[[each]]
+			clustNames.append([names[i]])
+		else:
+			for j, rep in enumerate(longest):
+				if compSeqs(each, rep,k)>=thresh:
+					clusts[j].append(each)
+					clustNames[j].append(names[i])
+					match=1
+					break
+			if not match:
+				longest.append(each)
+				clusts.append([each])
+				clustNames.append([names[i]])
+	return clusts, clustNames
 
 #Look at epitope merging script for algorithm to combine these clusters
 def combPairs(pairs):
-    d={}
-    groups = pairs[::]
-    for each in pairs:
-        for x in each:
-            d[x] = d.get(x, 0) + 1
-    for each, count in d.items():
-        if count>1:
-            groups = combine(each, groups)
-    return groups
+	d={}
+	groups = pairs[::]
+	for each in pairs:
+		for x in each:
+			d[x] = d.get(x, 0) + 1
+	for each, count in d.items():
+		if count>1:
+			groups = combine(each, groups)
+	return groups
 
 def combine(focal, gList):
-    newL = []
-    combo = []
-    for each in gList:
-        if focal in each:
-            combo+=each
-        else:
-            newL.append(each)
-    newL.append(list(set(combo)))
-    return newL
+	newL = []
+	combo = []
+	for each in gList:
+		if focal in each:
+			combo+=each
+		else:
+			newL.append(each)
+	newL.append(list(set(combo)))
+	return newL
 
 
 def merge(clusts, names, k, maxThresh, meanThresh):
-    pairs2merge = []
-    for a,b in it.combinations(range(len(clusts)), 2):
-        cs = btwnComps(clusts[a],clusts[b],k)
-        if max(cs)>=maxThresh or max(np.mean(cs),np.median(cs))>=meanThresh:
-            pairs2merge.append([a,b])
-        
-    groups2merge = combPairs(pairs2merge)
-    
-    newClusts = []
-    newNames = []
-    merged = []
-    for each in groups2merge:
-        newClusts.append([])
-        newNames.append([])
-        for a in each:
-            merged.append(a)
-            newClusts[-1] += clusts[a]
-            newNames[-1] += names[a]
-    for i in range(len(clusts)):
-        if i not in merged:
-            newClusts.append(clusts[i])
-            newNames.append(names[i])
-            
-    return newClusts, newNames
+	pairs2merge = []
+	for a,b in it.combinations(range(len(clusts)), 2):
+		cs = btwnComps(clusts[a],clusts[b],k)
+		if max(cs)>=maxThresh or max(np.mean(cs),np.median(cs))>=meanThresh:
+			pairs2merge.append([a,b])
+		
+	groups2merge = combPairs(pairs2merge)
+	
+	newClusts = []
+	newNames = []
+	merged = []
+	for each in groups2merge:
+		newClusts.append([])
+		newNames.append([])
+		for a in each:
+			merged.append(a)
+			newClusts[-1] += clusts[a]
+			newNames[-1] += names[a]
+	for i in range(len(clusts)):
+		if i not in merged:
+			newClusts.append(clusts[i])
+			newNames.append(names[i])
+			
+	return newClusts, newNames
 
