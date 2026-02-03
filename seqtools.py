@@ -1,6 +1,8 @@
 from collections import defaultdict
 
-import kmertools as kt
+import kmertools as kt       # Available at: https://github.com/jtladner/Modules
+import itertools as it
+import random
 
 std_nt = {"A":2, "T":2, "C":3, "G":3, "U":3}
 std_dna = {"A":2, "T":2, "C":3, "G":3}
@@ -33,6 +35,37 @@ trip2ambig = {("C", "G", "T"):"B",
 			  ("A", "C", "T"):"H",
 			}
 
+tuple2ambig = {("C", "T"):"Y", 
+				("A", "G"):"R",
+				("A", "T"):"W",
+				("C", "G"):"S",
+				("A", "C"):"M",
+				("G", "T"):"K",
+				("C", "G", "T"):"B", 
+				("A", "G", "T"):"D",
+				("A", "C", "G"):"V",
+				("A", "C", "T"):"H",
+				("A", "C", "G", "T"):"H",
+			}
+
+iupacStringD = {
+	"R": "AG", "Y": "CT", "S": "GC", "W": "AT", "K": "GT", 
+	"M": "AC", "B": "CGT", "D": "AGT", "H": "ACT", "V": "ACG", "N": "ACGT"
+}
+
+
+
+def expand_degenerate_seq(sequence, iupac_dict=iupacStringD):
+	"""
+	Generates all possible unambiguous sequences from a degenerate string.
+	"""
+	# Create a list of possible nucleotides for each position in the string
+	# Defaults to the character itself if not in the dictionary (e.g., standard A, C, G, T)
+	options = [iupac_dict.get(base, base) for base in sequence.upper()]
+	
+	# Use product to find all combinations and join them back into strings
+	return ["".join(p) for p in it.product(*options)]
+
 
 # Dictionary linking a DNA codon to the 1-letter amino acid to which it corresponds
 codon_table = { 
@@ -56,6 +89,16 @@ codon_table = {
 
 # Dictionary linking a PHRED character to the integer quality score, +33
 phred={chr(x+33):x for x in range(0,94)}
+
+# Translate a string of nt into aa
+def translate(ntSeq):
+	aaSeq=""
+	for i in range(0, len(ntSeq), 3):
+		if len(ntSeq)>=i+3:
+			aaSeq+=codon_table[ntSeq[i:i+3]]
+		else:
+			aaSeq+="X"
+	return aaSeq
 
 # Calculate GC content
 def calcGC(seq):
@@ -397,7 +440,7 @@ def consensus_2seqs(seqL):
 			cons+=pair2ambig[tuple(sorted(bases))]
 	return cons
 
-def consensus(seqL):
+def consensus(seqL, noAmbig=False):
 	cons = ""
 	for i in range(len(seqL[0])):
 		bases = [s[i] for s in seqL if s[i] != " " and s[i] != "-"]
@@ -411,15 +454,18 @@ def consensus(seqL):
 				countDrev[v].append(k)
 			
 			mostCommon = max(countDrev.keys())
-			#If there is one base with >50% frequency
-			if mostCommon/len(bases) >0.5:
-				cons+=countDrev[mostCommon][0]
-			elif len(countDrev[mostCommon]) == 2:
-				cons+=pair2ambig[tuple(sorted(countDrev[mostCommon]))]
-			elif len(countDrev[mostCommon]) == 3:
-				cons+=trip2ambig[tuple(sorted(countDrev[mostCommon]))]
+			if noAmbig:
+				cons+=random.choice(countDrev[mostCommon])
 			else:
-				cons+="N"
+				#If there is one base with >50% frequency
+				if mostCommon/len(bases) >0.5:
+					cons+=countDrev[mostCommon][0]
+				elif len(countDrev[mostCommon]) == 2:
+					cons+=pair2ambig[tuple(sorted(countDrev[mostCommon]))]
+				elif len(countDrev[mostCommon]) == 3:
+					cons+=trip2ambig[tuple(sorted(countDrev[mostCommon]))]
+				else:
+					cons+="N"
 	return cons
 
 
