@@ -30,7 +30,7 @@ def read_fastq_dicts(file, upper=True):
 
 
 
-def read_fasta_lists(file):
+def read_fasta_lists(file, simple=False):
 	fin = open(file, 'r')
 	count=0
 	
@@ -41,7 +41,10 @@ def read_fasta_lists(file):
 		line=line.strip()
 		if line and line[0] == '>':				#indicates the name of the sequence
 			count+=1
-			names.append(line[1:])
+			if simple:
+				names.append(line[1:].split()[0])
+			else:
+				names.append(line[1:])
 			if count>1:
 				seqs.append(seq)
 			seq=''
@@ -56,8 +59,8 @@ def read_fasta_dict_upper(file):
 	fasta_dict = dict(zip(names, seqs))
 	return fasta_dict
 
-def read_fasta_dict(file, up=True):
-	names, seqs = read_fasta_lists(file)
+def read_fasta_dict(file, up=True, simple=False):
+	names, seqs = read_fasta_lists(file, simple)
 	if up:
 		seqs = [x.upper() for x in seqs]
 	fasta_dict = dict(zip(names, seqs))
