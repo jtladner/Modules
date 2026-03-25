@@ -50,7 +50,8 @@ tuple2ambig = {("C", "T"):"Y",
 
 iupacStringD = {
 	"R": "AG", "Y": "CT", "S": "GC", "W": "AT", "K": "GT", 
-	"M": "AC", "B": "CGT", "D": "AGT", "H": "ACT", "V": "ACG", "N": "ACGT"
+	"M": "AC", "B": "CGT", "D": "AGT", "H": "ACT", "V": "ACG", "N": "ACGT",
+	"A":"A", "C":"C", "G":"G", "T":"T", 
 }
 
 
@@ -466,6 +467,23 @@ def consensus(seqL, noAmbig=False):
 					cons+=trip2ambig[tuple(sorted(countDrev[mostCommon]))]
 				else:
 					cons+="N"
+	return cons
+
+
+def consensus_minProp(seqL, minProp):
+	cons = ""
+	for i in range(len(seqL[0])):
+		bases = [s[i] for s in seqL if s[i] != " " and s[i] != "-"]
+		uniqBases = set(bases)
+		countD = {b:bases.count(b) for b in uniqBases}
+		propD = {b:c/len(seqL) for b,c in countD.items()}
+		uniqBases = [b for b,p in propD.items() if p>=minProp]
+		if len(uniqBases) == 0:
+			cons+="N"
+		elif len(uniqBases) == 1:
+			cons+=bases[0]
+		else:
+			cons+=tuple2ambig[tuple(sorted(uniqBases))]
 	return cons
 
 
